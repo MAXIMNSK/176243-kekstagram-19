@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Maxim Savickiy](https://up.htmlacademy.ru/javascript/19/user/176243).
-* Наставник: `Неизвестно`.
+* Наставник: `Артём Рудов`.
 
 ---
 
