@@ -3,15 +3,21 @@
 var COUNT_OBJECTS = 25;
 
 var arrayObjects = [];
-var likesMin = 15;
-var likesMax = 200;
-var arrayMessage = ['Всё отлично!', 'В целом всё неплохо. Но не всё.', 'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.', 'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.', 'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.', 'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'];
-var arrayNames = ['Артём', 'Вадим', 'Пётр', 'Ксения', 'Анна', 'Мария', 'Дмитрий', 'Игорь', 'Михаил', 'Ольга', 'Кристина', 'Елена'];
+var LIKES_MIN = 15;
+var LIKES_MAX = 200;
+var ARRAY_MESSAGE = ['Всё отлично!', 'В целом всё неплохо. Но не всё.', 'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.', 'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.', 'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.', 'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'];
+var ARRAY_NAMES = ['Артём', 'Вадим', 'Пётр', 'Ксения', 'Анна', 'Мария', 'Дмитрий', 'Игорь', 'Михаил', 'Ольга', 'Кристина', 'Елена'];
 var shadowBlock = document.createDocumentFragment();
 var templatePicture = document.querySelector('#picture').content.querySelector('.picture');
 var targetContentBlock = document.querySelector('.pictures');
 
-createElementPhoto(arrayObjects);
+for (var i = 0; i < COUNT_OBJECTS; i++) {
+  arrayObjects.push(createElementPhoto());
+
+  for (var x = 0; x < getRandomNumber(1, 5); x++) {
+    arrayObjects[i].comments.push(fillCommentsArray());
+  }
+}
 
 /**
  * Функция возвращает рандомное число
@@ -24,29 +30,28 @@ function getRandomNumber(minValue, maxValue) {
 }
 
 /**
- * Функция генерирует объекты по шаблонам и помещает в целевой массив arrayObjects
- * @param {[]} targetArray передаем целевой массив в функцию для заполнения массива объектами. Свойство объекта comments
- * хранит в себе массив, который мы заполняем вторым циклом. В этом массиве хранятся объекты с информацией о комментаторах
+ * Функция возвращает объект-фото
+ * @return {Object} возвращает объект со следующими свойствами: адрес фото / описание / количество лайков / список комментариев к фото
  */
-function createElementPhoto(targetArray) {
-  for (var i = 0; i < COUNT_OBJECTS; i++) {
-    targetArray.push({
-      url: 'photos/' + +(i + 1) + '.jpg',
-      description: 'description photo',
-      likes: getRandomNumber(likesMin, likesMax),
-      comments: []
-    });
-  }
+function createElementPhoto() {
+  return {
+    url: 'photos/' + (i + 1) + '.jpg',
+    description: 'description photo',
+    likes: getRandomNumber(LIKES_MIN, LIKES_MAX),
+    comments: [fillCommentsArray()]
+  };
+}
 
-  for (i = 0; i < targetArray.length; i++) {
-    for (var y = 0; y < getRandomNumber(1, 10); y++) {
-      targetArray[i].comments[y] = {
-        avatar: 'img/avatar-' + getRandomNumber(1, 7) + '.svg',
-        message: arrayMessage[getRandomNumber(1, arrayMessage.length)],
-        name: arrayNames[getRandomNumber(1, arrayNames.length)]
-      };
-    }
-  }
+/**
+ * Функция заполняет массив комментариев в объекте-фото
+ * @return {Object} возвращает комментарий к фото, со следующими свойствами: аватар пользователя / сообщение / имя
+ */
+function fillCommentsArray() {
+  return {
+    avatar: 'img/avatar-' + getRandomNumber(1, 7) + '.svg',
+    message: ARRAY_MESSAGE[getRandomNumber(1, ARRAY_MESSAGE.length)],
+    name: ARRAY_NAMES[getRandomNumber(1, ARRAY_NAMES.length)]
+  };
 }
 
 /**
@@ -62,7 +67,7 @@ function fillTemplate(contentArray) {
   return cloneTemplatePicture;
 }
 
-for (var i = 0; i < arrayObjects.length; i++) {
+for (i = 0; i < arrayObjects.length; i++) {
   shadowBlock.append(fillTemplate(arrayObjects[i]));
 }
 
