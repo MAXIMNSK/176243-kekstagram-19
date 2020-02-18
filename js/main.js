@@ -9,6 +9,15 @@ var arrayObjects = [];
 var shadowBlock = document.createDocumentFragment();
 var templatePicture = document.querySelector('#picture').content.querySelector('.picture');
 var targetContentBlock = document.querySelector('.pictures');
+var siteBody = document.querySelector('body');
+var bigPictureBlock = document.querySelector('.big-picture');
+var bigPictureImage = bigPictureBlock.querySelector('.big-picture__img').querySelector('img');
+var bigPictureLikes = bigPictureBlock.querySelector('.likes-count');
+var bigPictureCountComments = bigPictureBlock.querySelector('.comments-count');
+var bigPictureListComments = bigPictureBlock.querySelector('.social__comments');
+var bigPictureDescription = bigPictureBlock.querySelector('.social__caption');
+var bigPictureCommentCounter = bigPictureBlock.querySelector('.social__comment-count');
+var bigPictureCommentsLoader = bigPictureBlock.querySelector('.comments-loader');
 
 for (var i = 0; i < COUNT_OBJECTS; i++) {
   arrayObjects.push(createElementPhoto(i));
@@ -75,3 +84,58 @@ for (i = 0; i < arrayObjects.length; i++) {
 }
 
 targetContentBlock.append(shadowBlock);
+
+showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, siteBody);
+renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, arrayObjects);
+
+/**
+ * Функция скрывает или показывает элемент в разметке big-picture
+ * @param {*} commentsCount параметр отвечает за количество комментариев
+ * @param {*} commentsLoader передаём в функцию элемент-загрузчик новых комментариев
+ * @param {*} elementBigPicture в данном параметре находится блок big-picture
+ * @param {*} tagBody данным аргументом мы передаём в функцию тег body в нашей разметке
+ */
+function showOrHideBigPicture(commentsCount, commentsLoader, elementBigPicture, tagBody) {
+  commentsCount.classList.toggle('hidden');
+  commentsLoader.classList.toggle('hidden');
+  elementBigPicture.classList.toggle('hidden');
+  tagBody.classList.toggle('modal-open');
+}
+
+/**
+ * Функция рендерит (заполняет) наш элемент big-picture согласно ТЗ (из 0 индекса массива с объектами - arrayObjects)
+ * @param {*} image тег-картинка из блока big-picture
+ * @param {*} likes количество лайков к картинке
+ * @param {*} countComments количество комментариев
+ * @param {*} listComments список комментариев к картинке в блоке big-picture
+ * @param {*} description описание к картинке
+ * @param {[]} dataArray массив с объектами из которых берем данные для заполнения
+ */
+function renderBigPicture(image, likes, countComments, listComments, description, dataArray) {
+  image.setAttribute('src', dataArray[0].url);
+  likes.textContent = dataArray[0].likes;
+  countComments.textContent = dataArray[0].comments.length;
+  listComments.append(addForPictureComments(listComments, dataArray));
+  description.textContent = dataArray[0].description;
+}
+
+/**
+ * Функция сначала очищает список комментариев а потом возвращает заполненный template-элемент комментариями в список
+ * @param {*} targetList целевой элемент-список с комментариями
+ * @param {[]} dataArray массив с объектами из которых мы берем значения свойств для заполнения комментариев
+ * @return {*} возвращаем заполненный template с комментариями
+ */
+function addForPictureComments(targetList, dataArray) {
+  var temp = document.createElement('template');
+
+  // очищаем список от дочерних элементов имеющихся по умолчанию
+  while (targetList.firstChild) {
+    targetList.removeChild(targetList.firstChild);
+  }
+
+  for (i = 0; i < dataArray[0].comments.length; i++) {
+    temp.innerHTML += '<li class="social__comment"><img class="social__picture" src="' + dataArray[0].comments[i].avatar + '" alt="' + dataArray[0].comments[i].name + '" width="35" height="35"><p class="social__text">' + dataArray[0].comments[i].message + '</p></li>';
+  }
+
+  return temp.content;
+}
