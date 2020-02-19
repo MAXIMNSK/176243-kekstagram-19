@@ -86,7 +86,7 @@ for (i = 0; i < arrayObjects.length; i++) {
 targetContentBlock.append(shadowBlock);
 
 showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, siteBody);
-renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, arrayObjects);
+renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, arrayObjects[0]);
 
 /**
  * Функция скрывает или показывает элемент в разметке big-picture
@@ -103,20 +103,21 @@ function showOrHideBigPicture(commentsCount, commentsLoader, elementBigPicture, 
 }
 
 /**
- * Функция рендерит (заполняет) наш элемент big-picture согласно ТЗ (из 0 индекса массива с объектами - arrayObjects)
+ * Функция заполняет элемент big-picture
  * @param {*} image тег-картинка из блока big-picture
  * @param {*} likes количество лайков к картинке
  * @param {*} countComments количество комментариев
  * @param {*} listComments список комментариев к картинке в блоке big-picture
  * @param {*} description описание к картинке
- * @param {[]} dataArray массив с объектами из которых берем данные для заполнения
+ * @param {Object} contentObject целевой объект передаваемый в функцию, из которого будут браться значения его свойств
  */
-function renderBigPicture(image, likes, countComments, listComments, description, dataArray) {
-  image.setAttribute('src', dataArray[0].url);
-  likes.textContent = dataArray[0].likes;
-  countComments.textContent = dataArray[0].comments.length;
-  listComments.append(addForPictureComments(listComments, dataArray));
-  description.textContent = dataArray[0].description;
+function renderBigPicture(image, likes, countComments, listComments, description, contentObject) {
+  image.setAttribute('src', contentObject.url);
+  likes.textContent = contentObject.likes;
+  countComments.textContent = contentObject.comments.length;
+  //listComments.append(addForPictureComments(listComments, dataArray));
+  getComment(listComments, contentObject);
+  description.textContent = contentObject.description;
 }
 
 /**
@@ -125,17 +126,13 @@ function renderBigPicture(image, likes, countComments, listComments, description
  * @param {[]} dataArray массив с объектами из которых мы берем значения свойств для заполнения комментариев
  * @return {*} возвращаем заполненный template с комментариями
  */
-function addForPictureComments(targetList, dataArray) {
-  var temp = document.createElement('template');
-
+function getComment(listComments, contentObject) {
   // очищаем список от дочерних элементов имеющихся по умолчанию
-  while (targetList.firstChild) {
-    targetList.removeChild(targetList.firstChild);
+  while (listComments.firstChild) {
+    listComments.removeChild(listComments.firstChild);
   }
 
-  for (i = 0; i < dataArray[0].comments.length; i++) {
-    temp.innerHTML += '<li class="social__comment"><img class="social__picture" src="' + dataArray[0].comments[i].avatar + '" alt="' + dataArray[0].comments[i].name + '" width="35" height="35"><p class="social__text">' + dataArray[0].comments[i].message + '</p></li>';
+  for (i = 0; i < contentObject.comments.length; i++) {
+    listComments.insertAdjacentHTML('beforeend', '<li class="social__comment"><img class="social__picture" src="' + contentObject.comments[i].avatar + '" alt="' + contentObject.comments[i].name + '" width="35" height="35"><p class="social__text">' + contentObject.comments[i].message + '</p></li>');
   }
-
-  return temp.content;
 }
