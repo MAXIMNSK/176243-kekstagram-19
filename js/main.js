@@ -115,16 +115,14 @@ function renderBigPicture(image, likes, countComments, listComments, description
   image.setAttribute('src', contentObject.url);
   likes.textContent = contentObject.likes;
   countComments.textContent = contentObject.comments.length;
-  //listComments.append(addForPictureComments(listComments, dataArray));
   getComment(listComments, contentObject);
   description.textContent = contentObject.description;
 }
 
 /**
- * Функция сначала очищает список комментариев а потом возвращает заполненный template-элемент комментариями в список
- * @param {*} targetList целевой элемент-список с комментариями
- * @param {[]} dataArray массив с объектами из которых мы берем значения свойств для заполнения комментариев
- * @return {*} возвращаем заполненный template с комментариями
+ * Функция сначала очищает список комментариев а потом рендерит элемент в разметке, в списке комментариев
+ * @param {*} listComments целевой элемент-список с комментариями
+ * @param {Object} contentObject целевой объект передаваемый в функцию, из которого будут браться значения его свойств
  */
 function getComment(listComments, contentObject) {
   // очищаем список от дочерних элементов имеющихся по умолчанию
