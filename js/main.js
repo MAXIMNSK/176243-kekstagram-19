@@ -5,12 +5,17 @@ var LIKES_MIN = 15;
 var LIKES_MAX = 200;
 var ARRAY_MESSAGE = ['Всё отлично!', 'В целом всё неплохо. Но не всё.', 'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.', 'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.', 'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.', 'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'];
 var ARRAY_NAMES = ['Артём', 'Вадим', 'Пётр', 'Ксения', 'Анна', 'Мария', 'Дмитрий', 'Игорь', 'Михаил', 'Ольга', 'Кристина', 'Елена'];
+var MIN_PHOTO_SIZE_PERCENT = 25;
+var MAX_PHOTO_SIZE_PERCENT = 100;
+var STEP_PHOTO_RESIZE_PERCENT = 25;
+
 var arrayObjects = [];
 var shadowBlock = document.createDocumentFragment();
 var templatePicture = document.querySelector('#picture').content.querySelector('.picture');
 var targetContentBlock = document.querySelector('.pictures');
 var siteBody = document.querySelector('body');
 var bigPictureBlock = document.querySelector('.big-picture');
+var bigPictureCloser = document.querySelector('.big-picture__cancel');
 var bigPictureImage = bigPictureBlock.querySelector('.big-picture__img').querySelector('img');
 var bigPictureLikes = bigPictureBlock.querySelector('.likes-count');
 var bigPictureCountComments = bigPictureBlock.querySelector('.comments-count');
@@ -18,6 +23,178 @@ var bigPictureListComments = bigPictureBlock.querySelector('.social__comments');
 var bigPictureDescription = bigPictureBlock.querySelector('.social__caption');
 var bigPictureCommentCounter = bigPictureBlock.querySelector('.social__comment-count');
 var bigPictureCommentsLoader = bigPictureBlock.querySelector('.comments-loader');
+
+var uploaderPhoto = document.querySelector('#upload-file');
+var editorPhoto = document.querySelector('.img-upload__overlay');
+var editorPhotoCloser = document.querySelector('.img-upload__cancel');
+var photoEffectsList = document.querySelector('.effects__list');
+var photoOriginalEffect = document.querySelector('#effect-none');
+var intensivityScale = document.querySelector('fieldset.img-upload__effect-level');
+var photoUploaded = document.querySelector('.img-upload__preview').querySelector('img');
+var resizePhotoWrapper = document.querySelector('.img-upload__scale');
+var resizePhotoInputArea = document.querySelector('.scale__control--value');
+var resizePhotoToSmall = document.querySelector('.scale__control--smaller');
+var resizePhotoToBig = document.querySelector('.scale__control--bigger');
+var hashtagsInputArea = document.querySelector('.text__hashtags');
+var commentsInputArea = document.querySelector('.text__description');
+
+uploaderPhoto.addEventListener('change', onUploaderFileChange);
+editorPhotoCloser.addEventListener('click', onCloseBtnClick);
+document.addEventListener('keydown', onPressCloseModal);
+bigPictureCloser.addEventListener('click', onCloseBtnClick);
+photoEffectsList.addEventListener('click', onEffectClick);
+resizePhotoWrapper.addEventListener('click', onBtnResize);
+hashtagsInputArea.addEventListener('input', onHashtagsInput);
+
+/**
+ * Функция-обработчик добавляет/удаляет класс modal-open для тега body и показывает редактор фотографии при изменении статуса photo uploader
+ */
+function onUploaderFileChange() {
+  if (siteBody.classList.contains('modal-open') === false) {
+    siteBody.classList.toggle('modal-open');
+  }
+
+  if (editorPhoto.classList.contains('hidden') === true) {
+    editorPhoto.classList.toggle('hidden');
+  }
+}
+
+/**
+ * Функция-обработчик вызываемая при клике на кнопку закрытия модального окна
+ */
+function onCloseBtnClick() {
+  if (editorPhoto.classList.contains('hidden') === false) {
+    editorPhoto.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+    // сбрасываем значение на ноль при закрытии формы
+    uploaderPhoto.value = null;
+  }
+
+  if (bigPictureCloser.classList.contains('hidden') === false) {
+    bigPictureBlock.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+  }
+}
+
+/**
+ * Функция-обработчик закрывает модальные окна при нажатии на Esc если открыты модальные окна big-picture или img-upload__overlay. Если же в фокусе находится область ввода хештега или область ввода комментариев то модальное окно не закрывается.
+ * @param {*} evt событие передаваемое в функцию по умолчанию JSом
+ */
+function onPressCloseModal(evt) {
+  if (evt.keyCode === 27 && editorPhoto.classList.contains('hidden') === false) {
+    if (document.activeElement !== hashtagsInputArea && document.activeElement !== commentsInputArea) {
+      editorPhoto.classList.toggle('hidden');
+      siteBody.classList.toggle('modal-open');
+      // сбрасываем значение на ноль при закрытии формы
+      uploaderPhoto.value = null;
+    }
+  }
+
+  if (evt.keyCode === 27 && bigPictureBlock.classList.contains('hidden') === false) {
+    bigPictureBlock.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+  }
+}
+
+/**
+ * Функция-обработчик вызываемая при клике на список фото-эффектов. В случае нажатия на элемент списка, то у загруженной фотографии очищается класслист и передаётся класс с модификатором соответствующего эффекта
+ * @param {*} evt событие передаваемое в функцию по умолчанию JSом
+ */
+function onEffectClick(evt) {
+  if (evt.target.matches('input[type="radio"]') === true) {
+    photoUploaded.className = '';
+    photoUploaded.classList.add('effects__preview--' + evt.target.value);
+  }
+
+  if (evt.target === photoOriginalEffect && intensivityScale.classList.contains('hidden') === false) {
+    intensivityScale.classList.add('hidden');
+  } else {
+    intensivityScale.classList.remove('hidden');
+  }
+}
+
+/**
+ * Функция-обработчик вызываемая при клике на элемент изменяющий и отображающий размер загруженной фотографии. Если была нажата кнопка + то фото увеличивается на 25%, если на - то уменьшается на 25 (но не меньше 25 и не больше 100).
+ * @param {*} evt событие передаваемое в функцию по умолчанию JSом
+ */
+function onBtnResize(evt) {
+  var temp = parseInt(resizePhotoInputArea.value, 10);
+
+  if (evt.target === resizePhotoToSmall) {
+    if (temp > MIN_PHOTO_SIZE_PERCENT) {
+      resizePhotoInputArea.value = temp - STEP_PHOTO_RESIZE_PERCENT + '%';
+    }
+  }
+
+  if (evt.target === resizePhotoToBig) {
+    if (temp < MAX_PHOTO_SIZE_PERCENT) {
+      resizePhotoInputArea.value = temp + STEP_PHOTO_RESIZE_PERCENT + '%';
+    }
+  }
+
+  // обновляем значение temp после изменения value в ветвлениях
+  temp = parseInt(resizePhotoInputArea.value, 10);
+
+  photoUploaded.style.transform = 'scale(' + (temp / 100) + ')';
+}
+
+/**
+ * Функция получает хештеги из соответствующего поля ввода, и проверяет каждый хештег на соответствие критериям
+ */
+function onHashtagsInput() {
+  var incorrectSymbolsString = '!@$%^&*()_+"№;:?-=,.';
+  var incorrectSymbolsArray = incorrectSymbolsString.split('');
+
+  var inputData = hashtagsInputArea.value.split(' ');
+
+  for (var i = 0; i < inputData.length; i++) {
+    // наличие решетки
+    if (inputData[i][0] !== '#') {
+      hashtagsInputArea.setCustomValidity('Хештег должен начинаться со спец.символа - #');
+      break;
+    } else {
+      hashtagsInputArea.setCustomValidity('');
+    }
+
+    // длина хештега подходит
+    if (inputData[i].length < 2 || inputData[i].length > 20) {
+      hashtagsInputArea.setCustomValidity('Длина хештега должна быть от 2 до 20 символов (включая спецсимвол - #)');
+      break;
+    } else {
+      hashtagsInputArea.setCustomValidity('');
+    }
+
+    // количество хештегов
+    if (inputData.length > 5) {
+      hashtagsInputArea.setCustomValidity('Количество хештегов не должно превышать 5');
+      break;
+    } else {
+      hashtagsInputArea.setCustomValidity('');
+    }
+
+    // проверка на не корректные символы
+    for (var y = 0; y < inputData[i].length; y++) {
+      for (var x = 0; x < incorrectSymbolsArray.length; x++) {
+        if (inputData[i][y] === incorrectSymbolsArray[x]) {
+          hashtagsInputArea.setCustomValidity(incorrectSymbolsArray[x] + ' - является недопустимым символом');
+          break;
+        } else {
+          hashtagsInputArea.setCustomValidity('');
+        }
+      }
+    }
+  }
+
+  // поиск по входным данным на схожие хештеги
+  for (i = 0; i < inputData.length; i++) {
+    for (y = 0; y < inputData.length; y++) {
+      if (i !== y && inputData[i].toLowerCase() === inputData[y].toLowerCase()) {
+        hashtagsInputArea.setCustomValidity('Среди хештегов есть одинаковые входные данные');
+        break;
+      }
+    }
+  }
+}
 
 for (var i = 0; i < COUNT_OBJECTS; i++) {
   arrayObjects.push(createElementPhoto(i));
