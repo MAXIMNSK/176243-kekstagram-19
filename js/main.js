@@ -8,6 +8,11 @@ var ARRAY_NAMES = ['Артём', 'Вадим', 'Пётр', 'Ксения', 'Ан
 var MIN_PHOTO_SIZE_PERCENT = 25;
 var MAX_PHOTO_SIZE_PERCENT = 100;
 var STEP_PHOTO_RESIZE_PERCENT = 25;
+var BTN_ESC_CODE = 27;
+var MIN_HASHTAG_LENGTH = 2;
+var MAX_HASHTAG_LENGTH = 20;
+var MAX_COUNT_HASHTAGS = 5;
+var DEFAULT_INTENSIVITY = 100;
 
 var arrayObjects = [];
 var shadowBlock = document.createDocumentFragment();
@@ -26,10 +31,11 @@ var bigPictureCommentsLoader = bigPictureBlock.querySelector('.comments-loader')
 
 var uploaderPhoto = document.querySelector('#upload-file');
 var editorPhoto = document.querySelector('.img-upload__overlay');
+var editorPhotoForm = document.querySelector('.img-upload__form');
 var editorPhotoCloser = document.querySelector('.img-upload__cancel');
 var photoEffectsList = document.querySelector('.effects__list');
 var photoOriginalEffect = document.querySelector('#effect-none');
-var intensivityScale = document.querySelector('fieldset.img-upload__effect-level');
+var intensivityScaleWrapper = document.querySelector('.img-upload__effect-level');
 var photoUploaded = document.querySelector('.img-upload__preview').querySelector('img');
 var resizePhotoWrapper = document.querySelector('.img-upload__scale');
 var resizePhotoInputArea = document.querySelector('.scale__control--value');
@@ -37,14 +43,31 @@ var resizePhotoToSmall = document.querySelector('.scale__control--smaller');
 var resizePhotoToBig = document.querySelector('.scale__control--bigger');
 var hashtagsInputArea = document.querySelector('.text__hashtags');
 var commentsInputArea = document.querySelector('.text__description');
-
-uploaderPhoto.addEventListener('change', onUploaderFileChange);
-editorPhotoCloser.addEventListener('click', onCloseBtnClick);
-document.addEventListener('keydown', onPressCloseModal);
-bigPictureCloser.addEventListener('click', onCloseBtnClick);
-photoEffectsList.addEventListener('click', onEffectClick);
-resizePhotoWrapper.addEventListener('click', onBtnResize);
-hashtagsInputArea.addEventListener('input', onHashtagsInput);
+var pinOnScale = document.querySelector('.effect-level__pin');
+var elementIntensivityScale = document.querySelector('.effect-level__line');
+var intensivityEffectInput = document.querySelector('.effect-level__value');
+var activeFilter = photoOriginalEffect.value;
+var persentOfIntensivity = DEFAULT_INTENSIVITY;
+var objFilters = {
+  none: function () {
+    return 'none';
+  },
+  chrome: function () {
+    return 'grayscale(' + (1 / 100) * persentOfIntensivity + ')';
+  },
+  sepia: function () {
+    return 'sepia(' + (1 / 100) * persentOfIntensivity + ')';
+  },
+  marvin: function () {
+    return 'invert(' + 1 * persentOfIntensivity + '%)';
+  },
+  phobos: function () {
+    return 'blur(' + (3 / 100) * persentOfIntensivity + 'px)';
+  },
+  heat: function () {
+    return 'brightness(' + ((3 - 1) / 100) * persentOfIntensivity + 1 + ')';
+  },
+};
 
 /**
  * Функция-обработчик добавляет/удаляет класс modal-open для тега body и показывает редактор фотографии при изменении статуса photo uploader
@@ -61,55 +84,98 @@ function onUploaderFileChange() {
 
 /**
  * Функция-обработчик вызываемая при клике на кнопку закрытия модального окна
- */
-function onCloseBtnClick() {
-  if (editorPhoto.classList.contains('hidden') === false) {
-    editorPhoto.classList.toggle('hidden');
-    siteBody.classList.toggle('modal-open');
-    // сбрасываем значение на ноль при закрытии формы
-    uploaderPhoto.value = null;
-  }
-
-  if (bigPictureCloser.classList.contains('hidden') === false) {
-    bigPictureBlock.classList.toggle('hidden');
-    siteBody.classList.toggle('modal-open');
-  }
-}
-
-/**
- * Функция-обработчик закрывает модальные окна при нажатии на Esc если открыты модальные окна big-picture или img-upload__overlay. Если же в фокусе находится область ввода хештега или область ввода комментариев то модальное окно не закрывается.
  * @param {*} evt событие передаваемое в функцию по умолчанию JSом
  */
-function onPressCloseModal(evt) {
-  if (evt.keyCode === 27 && editorPhoto.classList.contains('hidden') === false) {
-    if (document.activeElement !== hashtagsInputArea && document.activeElement !== commentsInputArea) {
-      editorPhoto.classList.toggle('hidden');
-      siteBody.classList.toggle('modal-open');
-      // сбрасываем значение на ноль при закрытии формы
-      uploaderPhoto.value = null;
-    }
-  }
-
-  if (evt.keyCode === 27 && bigPictureBlock.classList.contains('hidden') === false) {
+function onCloseBtnClick(evt) {
+  if (evt.target === bigPictureCloser) {
     bigPictureBlock.classList.toggle('hidden');
     siteBody.classList.toggle('modal-open');
+  }
+
+  if (evt.target === editorPhotoCloser) {
+    editorPhoto.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+    editorPhotoForm.reset();
   }
 }
 
 /**
- * Функция-обработчик вызываемая при клике на список фото-эффектов. В случае нажатия на элемент списка, то у загруженной фотографии очищается класслист и передаётся класс с модификатором соответствующего эффекта
+ * Функция-обработчик закрывает при нажатии на Esc модальные окна big-picture или img-upload__overlay. Если же в фокусе находится область ввода хештега или область ввода комментариев то модальное окно не закрывается.
+ * @param {*} evt событие передаваемое в функцию по умолчанию JSом
+ */
+function onPressEscKeydown(evt) {
+  var successToClose;
+
+  if (evt.keyCode === BTN_ESC_CODE && bigPictureBlock.classList.contains('hidden') === false) {
+    bigPictureBlock.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+  }
+
+  if (document.activeElement === hashtagsInputArea || document.activeElement === commentsInputArea) {
+    successToClose = false;
+  } else {
+    successToClose = true;
+  }
+
+  if (evt.keyCode === BTN_ESC_CODE && editorPhoto.classList.contains('hidden') === false && successToClose === true) {
+    editorPhoto.classList.toggle('hidden');
+    siteBody.classList.toggle('modal-open');
+    editorPhotoForm.reset();
+  }
+}
+
+/**
+ * Функция-обработчик вызываемая при клике на список фото-эффектов. При нажатии на фильтр, картинке передаётся класс из value фильтра. При клике на original filter - шкала скрывается, в случае если нажали не на original и шкала скрыта - шкалу интенсивности показываем. Так же выгружаем значение активного фильтра строкой в переменную activeFilter. И при смене фильтра задаём % интенсивности по умолчанию === DEFAULT_INTENSIVITY. После чего обращаемся к функции для обновления значений у целевого элемента.
  * @param {*} evt событие передаваемое в функцию по умолчанию JSом
  */
 function onEffectClick(evt) {
   if (evt.target.matches('input[type="radio"]') === true) {
     photoUploaded.className = '';
     photoUploaded.classList.add('effects__preview--' + evt.target.value);
+
+    activeFilter = evt.target.value;
+    persentOfIntensivity = DEFAULT_INTENSIVITY;
   }
 
-  if (evt.target === photoOriginalEffect && intensivityScale.classList.contains('hidden') === false) {
-    intensivityScale.classList.add('hidden');
+  if (evt.target.matches('input[type="radio"]') === true && evt.target === photoOriginalEffect) {
+    intensivityScaleWrapper.classList.toggle('hidden');
+  }
+
+  if (evt.target.matches('input[type="radio"]') === true && evt.target !== photoOriginalEffect && intensivityScaleWrapper.classList.contains('hidden') === true) {
+    intensivityScaleWrapper.classList.toggle('hidden');
+  }
+
+  onInputIntensivityInput(activeFilter);
+}
+
+/**
+ * Функция-обработчик определяет положение тумблера на шкале, и обновляет значение переменной persentOfIntensivity на актуальное. Так же актуальное значение передаём в требуемый по ТЗ инпут. Обращаемся к функции для обновления параметров целевого изображения.
+ */
+function onPinMouseUp() {
+  var totalWidthScale = elementIntensivityScale.offsetWidth;
+  persentOfIntensivity = Math.round(pinOnScale.offsetLeft / (totalWidthScale / 100));
+  intensivityEffectInput.value = persentOfIntensivity;
+
+  onInputIntensivityInput(activeFilter);
+}
+
+/**
+ * Функция получает имя активного фильтра и проверяет по ветвлению, когда соответствие найдено, то для фотографии обновляем фильтр задавая новый стиль (данные берем из объекта с фильтрами)
+ * @param {string} currentFilter имя передаваемого активного фильтра
+ */
+function onInputIntensivityInput(currentFilter) {
+  if (currentFilter === 'chrome') {
+    photoUploaded.style.filter = objFilters.chrome();
+  } else if (currentFilter === 'sepia') {
+    photoUploaded.style.filter = objFilters.sepia();
+  } else if (currentFilter === 'marvin') {
+    photoUploaded.style.filter = objFilters.marvin();
+  } else if (currentFilter === 'phobos') {
+    photoUploaded.style.filter = objFilters.phobos();
+  } else if (currentFilter === 'heat') {
+    photoUploaded.style.filter = objFilters.heat();
   } else {
-    intensivityScale.classList.remove('hidden');
+    photoUploaded.style.filter = objFilters.none();
   }
 }
 
@@ -118,7 +184,7 @@ function onEffectClick(evt) {
  * @param {*} evt событие передаваемое в функцию по умолчанию JSом
  */
 function onBtnResize(evt) {
-  var temp = parseInt(resizePhotoInputArea.value, 10);
+  var temp = +resizePhotoInputArea.value.slice(0, resizePhotoInputArea.value.length - 1);
 
   if (evt.target === resizePhotoToSmall) {
     if (temp > MIN_PHOTO_SIZE_PERCENT) {
@@ -133,67 +199,78 @@ function onBtnResize(evt) {
   }
 
   // обновляем значение temp после изменения value в ветвлениях
-  temp = parseInt(resizePhotoInputArea.value, 10);
+  temp = +resizePhotoInputArea.value.slice(0, resizePhotoInputArea.value.length - 1);
 
   photoUploaded.style.transform = 'scale(' + (temp / 100) + ')';
 }
 
 /**
- * Функция получает хештеги из соответствующего поля ввода, и проверяет каждый хештег на соответствие критериям
+ * Функция получает хештеги из соответствующего поля ввода, и проверяет каждый хештег на соответствие критериям (прогоняя входные данные через цикл forEach)
  */
 function onHashtagsInput() {
+  var inputData = hashtagsInputArea.value.split(' ');
+  inputData.forEach(checkHashtags);
+}
+
+/**
+ * Функция проверяет входные данные по критериям
+ * @param {string} element передаём в функцию содержимое обрабатываемого индекса массива
+ * @param {number} index передаём в функцию индекс обрабатываемого элемента
+ * @param {[]} array передаём в функцию целевой массив
+ * @return {boolean} возвращает false в случае провала проверки
+ */
+function checkHashtags(element, index, array) {
   var incorrectSymbolsString = '!@$%^&*()_+"№;:?-=,.';
   var incorrectSymbolsArray = incorrectSymbolsString.split('');
+  var notFound = -1;
 
-  var inputData = hashtagsInputArea.value.split(' ');
-
-  for (var i = 0; i < inputData.length; i++) {
-    // наличие решетки
-    if (inputData[i][0] !== '#') {
-      hashtagsInputArea.setCustomValidity('Хештег должен начинаться со спец.символа - #');
-      break;
+  // проверка не не корректные символы
+  for (var i = 0; i < incorrectSymbolsArray.length; i++) {
+    if (element.indexOf(incorrectSymbolsArray[i]) !== notFound) {
+      hashtagsInputArea.setCustomValidity(incorrectSymbolsArray[i] + ' некорректный символ в хештеге');
+      return false;
     } else {
       hashtagsInputArea.setCustomValidity('');
     }
+  }
 
-    // длина хештега подходит
-    if (inputData[i].length < 2 || inputData[i].length > 20) {
-      hashtagsInputArea.setCustomValidity('Длина хештега должна быть от 2 до 20 символов (включая спецсимвол - #)');
-      break;
-    } else {
-      hashtagsInputArea.setCustomValidity('');
-    }
+  // начинается ли индекс с решетки
+  if (element[0] !== '#') {
+    hashtagsInputArea.setCustomValidity('Хештег должен начинаться с #');
+    return false;
+  } else {
+    hashtagsInputArea.setCustomValidity('');
+  }
 
-    // количество хештегов
-    if (inputData.length > 5) {
-      hashtagsInputArea.setCustomValidity('Количество хештегов не должно превышать 5');
-      break;
-    } else {
-      hashtagsInputArea.setCustomValidity('');
-    }
+  // минимальная и максимальная длина хештега
+  if (element.length < MIN_HASHTAG_LENGTH || element.length > MAX_HASHTAG_LENGTH) {
+    hashtagsInputArea.setCustomValidity('Длина хештега должна быть от 2 до 20 символов (включая спецсимвол - #)');
+    return false;
+  } else {
+    hashtagsInputArea.setCustomValidity('');
+  }
 
-    // проверка на не корректные символы
-    for (var y = 0; y < inputData[i].length; y++) {
-      for (var x = 0; x < incorrectSymbolsArray.length; x++) {
-        if (inputData[i][y] === incorrectSymbolsArray[x]) {
-          hashtagsInputArea.setCustomValidity(incorrectSymbolsArray[x] + ' - является недопустимым символом');
-          break;
-        } else {
-          hashtagsInputArea.setCustomValidity('');
-        }
+  // максимальное количество хештегов
+  if (array.length > MAX_COUNT_HASHTAGS) {
+    hashtagsInputArea.setCustomValidity('Количество хештегов не должно превышать 5');
+    return false;
+  } else {
+    hashtagsInputArea.setCustomValidity('');
+  }
+
+  // проверка на дублирующиеся хештеги
+  for (i = 0; i < array.length; i++) {
+    for (var y = 0; y < array.length; y++) {
+      if (i !== y && array[i].toLowerCase().includes(array[y].toLowerCase()) === true) {
+        hashtagsInputArea.setCustomValidity('Уже имеется такой хештег');
+        return false;
+      } else {
+        hashtagsInputArea.setCustomValidity('');
       }
     }
   }
 
-  // поиск по входным данным на схожие хештеги
-  for (i = 0; i < inputData.length; i++) {
-    for (y = 0; y < inputData.length; y++) {
-      if (i !== y && inputData[i].toLowerCase() === inputData[y].toLowerCase()) {
-        hashtagsInputArea.setCustomValidity('Среди хештегов есть одинаковые входные данные');
-        break;
-      }
-    }
-  }
+  return true;
 }
 
 for (var i = 0; i < COUNT_OBJECTS; i++) {
@@ -311,3 +388,15 @@ function getComment(listComments, contentObject) {
     listComments.insertAdjacentHTML('beforeend', '<li class="social__comment"><img class="social__picture" src="' + contentObject.comments[i].avatar + '" alt="' + contentObject.comments[i].name + '" width="35" height="35"><p class="social__text">' + contentObject.comments[i].message + '</p></li>');
   }
 }
+
+uploaderPhoto.addEventListener('change', onUploaderFileChange);
+editorPhotoCloser.addEventListener('click', onCloseBtnClick);
+document.addEventListener('keydown', onPressEscKeydown);
+bigPictureCloser.addEventListener('click', onCloseBtnClick);
+photoEffectsList.addEventListener('click', onEffectClick);
+resizePhotoWrapper.addEventListener('click', onBtnResize);
+hashtagsInputArea.addEventListener('input', onHashtagsInput);
+pinOnScale.addEventListener('mouseup', onPinMouseUp);
+
+// по умолчанию (при отрисовке страницы) скрываем шкалу интенсивности т.к. на старте выбран оригинальный фильтр
+intensivityScaleWrapper.classList.add('hidden');
