@@ -45,12 +45,13 @@
   }
 
   function responseError(code) {
-    switch(code) {
+    switch (code) {
       case code >= 0 && code < 100:
-        console.info(code);
-
+        // console.info(code);
+        break;
       case code >= 100 && code < 200:
-        console.info(code);
+        // console.info(code);
+        break;
     }
   }
 
