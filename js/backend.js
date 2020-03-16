@@ -29,12 +29,13 @@
 (function () {
   var shadowBlock = document.createDocumentFragment();
   var targetContentBlock = document.querySelector('.pictures');
-  var serverResponse = null;
 
   window.backend.download(responseOk, responseError);
 
   function responseOk(response) {
-    serverResponse = response;
+    window.backend = {
+      serverResponse: response,
+    };
 
     for (var y = 0; y < response.length; y++) {
       shadowBlock.append(window.collectionPhoto.create(response[y]));
@@ -49,13 +50,15 @@
       case code >= 0 && code < 100:
         // console.info(code);
         break;
+
       case code >= 100 && code < 200:
         // console.info(code);
         break;
+
+      default:
+        // console.error('error');
     }
   }
 
-  window.backend = {
-    serverResponse: serverResponse,
-  };
+
 })();

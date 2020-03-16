@@ -120,14 +120,11 @@
     }
   }
 
-  // showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, window.utility.body);
-  // renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, window.backend.targetArr[0]);
-
   var picturesCollection = document.querySelector('.pictures');
   picturesCollection.addEventListener('click', function (evt) {
     if (evt.target.matches('.picture__img') === true) {
       showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, window.utility.body);
-      renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, window.backend.targetArr[0]);
+      renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, window.backend.serverResponse[0]);
     }
   });
 })();
