@@ -156,7 +156,7 @@
       renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, targetElement);
 
       addCommentsBtn.addEventListener('click', function () {
-        commentQuota = commentQuota + 5;
+        commentQuota = commentQuota + startCommentQuota;
         renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, targetElement);
       });
     }
