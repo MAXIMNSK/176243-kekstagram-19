@@ -72,6 +72,10 @@
   var bigPictureDescription = document.querySelector('.social__caption');
   var bigPictureCommentCounter = document.querySelector('.social__comment-count');
   var bigPictureCommentsLoader = document.querySelector('.comments-loader');
+  var picturesCollection = document.querySelector('.pictures');
+  var startCommentQuota = 5;
+  var commentQuota = startCommentQuota;
+  var addCommentsBtn = document.querySelector('.comments-loader');
 
   /**
    * Функция скрывает/показывает элемент big-picture в разметке
@@ -116,15 +120,45 @@
     }
 
     for (var i = 0; i < contentObject.comments.length; i++) {
+      // если выгружены еще не все комментарии, и кнопка по каким либо причинам скрыта - показать её
+      if (i < contentObject.comments.length && addCommentsBtn.classList.contains('hidden') === true) {
+        addCommentsBtn.classList.toggle('hidden');
+      }
+
+      // если количество комментариев в общем совпадает с количеством выгруженных, то кнопку о доп. загрузке комментов скрываем
+      if (i === contentObject.comments.length - 1) {
+        addCommentsBtn.classList.toggle('hidden');
+      }
+
+      // если индекс перечисления === выделенной квоте комментариев, то больше не генерируем комментариев
+      if (i === commentQuota) {
+        return;
+      }
+
+      // отрисовываем комментарий
       listComments.insertAdjacentHTML('beforeend', '<li class="social__comment"><img class="social__picture" src="' + contentObject.comments[i].avatar + '" alt="' + contentObject.comments[i].name + '" width="35" height="35"><p class="social__text">' + contentObject.comments[i].message + '</p></li>');
     }
   }
 
-  var picturesCollection = document.querySelector('.pictures');
   picturesCollection.addEventListener('click', function (evt) {
+    var targetElement = null;
+
     if (evt.target.matches('.picture__img') === true) {
+      commentQuota = startCommentQuota;
+
+      window.backend.serverResponse.forEach(function (item, index, arr) {
+        if (item.url === evt.target.getAttribute('src')) {
+          targetElement = item;
+        }
+      });
+
       showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, window.utility.body);
-      renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, window.backend.serverResponse[0]);
+      renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, targetElement);
+
+      addCommentsBtn.addEventListener('click', function () {
+        commentQuota = commentQuota + 5;
+        renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, targetElement);
+      });
     }
   });
 })();
