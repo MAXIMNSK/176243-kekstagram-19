@@ -3,7 +3,7 @@
 // получение данных с сервера
 (function () {
   var URL = 'https://js.dump.academy/kekstagram/data';
-  var TIMEOUT = 5000;
+  var TIMEOUT = 10000;
   var TYPE = 'json';
 
   function download(onLoad, onError) {
