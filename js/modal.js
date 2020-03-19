@@ -10,6 +10,56 @@
   var uploaderPhoto = document.querySelector('#upload-file');
 
   /**
+   * Функция вызывается для скрытия уведомления о возникшей ошибке при загрузке данных на сервер
+   */
+  function errorUpload() {
+    var errorBlock = document.querySelector('.error');
+    var errorMessage = document.querySelector('.error__inner');
+    var errorBtn = document.querySelector('.error__button');
+
+    errorBtn.addEventListener('click', function () {
+      errorBlock.remove();
+    });
+
+    document.addEventListener('click', function (evt) {
+      if (evt.target !== errorMessage && document.querySelectorAll('.error').length > 0) {
+        errorBlock.remove();
+      }
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (evt.keyCode === window.utility.keyEsc && document.querySelectorAll('.error').length > 0) {
+        errorBlock.remove();
+      }
+    });
+  }
+
+  /**
+   * Функция вызывается для скрытия уведомления об успешной загрузке данных на сервер
+   */
+  function successfulUpload() {
+    var successBlock = document.querySelector('.success');
+    var successMessage = document.querySelector('.success__inner');
+    var successBtn = document.querySelector('.success__button');
+
+    successBtn.addEventListener('click', function () {
+      successBlock.remove();
+    });
+
+    document.addEventListener('click', function (evt) {
+      if (evt.target !== successMessage && document.querySelectorAll('.success').length > 0) {
+        successBlock.remove();
+      }
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (evt.keyCode === window.utility.keyEsc && document.querySelectorAll('.success').length > 0) {
+        successBlock.remove();
+      }
+    });
+  }
+
+  /**
    * Функция добавляет/удаляет класс modal-open для тега body и показывает редактор фотографии при изменении состояния photo uploader
    */
   function onUploaderFileChange() {
@@ -75,4 +125,9 @@
   });
 
   uploaderPhoto.addEventListener('change', onUploaderFileChange);
+
+  window.modal = {
+    closeSuccessfulUpload: successfulUpload,
+    closeErrorUpload: errorUpload,
+  };
 })();

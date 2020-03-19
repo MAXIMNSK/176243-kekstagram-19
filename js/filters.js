@@ -36,6 +36,17 @@
   };
 
   /**
+   * Функция сбрасывает на значения по умолчанию: активный фильтр, интенсивность, класс и фильтр для загруженного изображения.
+   */
+  function loadDefaultFilter() {
+    activeFilter = defaultPhotoEffect.value;
+    percentIntensivity = DEFAULT_INTENSIVITY;
+    window.utility.uploadedPhoto.classList = '';
+    window.utility.uploadedPhoto.style.filter = 'none';
+    intensivityScaleWrapper.classList.toggle('hidden');
+  }
+
+  /**
    * Функция-обработчик вызываемая при клике на список фото-эффектов. При нажатии на фильтр, картинке передаётся класс из value фильтра. При клике на original filter - шкала скрывается, в случае если нажали не на original и шкала скрыта - шкалу интенсивности показываем. Так же выгружаем значение активного фильтра строкой в переменную activeFilter. И при смене фильтра задаём % интенсивности по умолчанию === DEFAULT_INTENSIVITY. После чего обращаемся к функции для обновления значений у целевого элемента.
    * @param {*} evt событие передаваемое в функцию по умолчанию JSом
    */
@@ -92,4 +103,8 @@
 
   photoEffectsList.addEventListener('click', onEffectClick);
   pinOnScale.addEventListener('mouseup', onPinMouseUp);
+
+  window.filters = {
+    default: loadDefaultFilter,
+  };
 })();

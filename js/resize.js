@@ -12,6 +12,14 @@
   var resizePhotoToBig = document.querySelector('.scale__control--bigger');
 
   /**
+   * Функция сбрасывает на значения по умолчанию размер загружаемого фото
+   */
+  function loadDefaultSize() {
+    resizePhotoInputArea.value = MAX_PHOTO_SIZE_PERCENT + '%';
+    window.utility.uploadedPhoto.style.transform = 'scale(' + MAX_PHOTO_SIZE_PERCENT / MAX_PHOTO_SIZE_PERCENT + ')';
+  }
+
+  /**
    * Функция-обработчик вызываемая при клике на элемент изменяющий и отображающий размер загруженной фотографии. Если была нажата кнопка + то фото увеличивается на 25%, если на - то уменьшается на 25 (но не меньше 25 и не больше 100).
    * @param {*} evt событие передаваемое в функцию по умолчанию JSом
    */
@@ -37,4 +45,8 @@
   }
 
   resizePhotoWrapper.addEventListener('click', onBtnResize);
+
+  window.resize = {
+    default: loadDefaultSize,
+  };
 })();
