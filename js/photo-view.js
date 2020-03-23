@@ -34,14 +34,16 @@
    * Функция заполняет элемент big-picture
    * @param {*} image тег-картинка из блока big-picture
    * @param {*} likes количество лайков к картинке
+   * @param {*} currentCountComments блок отображающий количество коментариев (показанные и общее)
    * @param {*} countComments количество комментариев
    * @param {*} listComments список комментариев к картинке в блоке big-picture
    * @param {*} description описание к картинке
    * @param {Object} contentObject целевой объект передаваемый в функцию, из которого будут браться значения его свойств
    */
-  function renderBigPicture(image, likes, countComments, listComments, description, contentObject) {
+  function renderBigPicture(image, likes, currentCountComments, countComments, listComments, description, contentObject) {
     image.setAttribute('src', contentObject.url);
     likes.textContent = contentObject.likes;
+    currentCountComments.classList.remove('hidden');
     countComments.textContent = contentObject.comments.length;
     description.textContent = contentObject.description;
     getComment(listComments, contentObject);
@@ -79,25 +81,35 @@
     }
   }
 
-  picturesCollection.addEventListener('click', function (evt) {
+  /**
+   * Функция рендерит фотографию для просмотра комментариев / лайков при клике на оную
+   * @param {*} evt событие передаваемое в функцию
+   */
+  function onPictureClick(evt) {
     if (evt.target.matches('.picture__img') === true) {
       commentQuota = startCommentQuota;
     } else {
       return;
     }
 
-    window.collectionPhoto.arr.forEach(function (dataObject) {
+    window.collectionPhoto.getCollectionResponse.forEach(function (dataObject) {
       if (dataObject.url === evt.target.getAttribute('src')) {
         clickOnElement = dataObject;
       }
     });
 
-    showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, window.utility.body);
-    renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, clickOnElement);
-  });
+    showOrHideBigPicture(bigPictureCommentCounter, bigPictureCommentsLoader, bigPictureBlock, window.utility.getBodySite);
+    renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCommentCounter, bigPictureCountComments, bigPictureListComments, bigPictureDescription, clickOnElement);
+  }
 
-  bigPictureCommentsLoader.addEventListener('click', function () {
+  /**
+   * Функция подгружает еще больше комментариев при клике на соответствующий btn
+   */
+  function onCommentLoaderClick() {
     commentQuota = commentQuota + stepCommentQuota;
-    renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCountComments, bigPictureListComments, bigPictureDescription, clickOnElement);
-  });
+    renderBigPicture(bigPictureImage, bigPictureLikes, bigPictureCommentCounter, bigPictureCountComments, bigPictureListComments, bigPictureDescription, clickOnElement);
+  }
+
+  picturesCollection.addEventListener('click', onPictureClick);
+  bigPictureCommentsLoader.addEventListener('click', onCommentLoaderClick);
 })();

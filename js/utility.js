@@ -5,6 +5,7 @@
   var siteBody = document.querySelector('body');
   var photoUploaded = document.querySelector('.img-upload__preview').querySelector('img');
   var BTN_ESC_CODE = 27;
+  var TIMEOUT = 10000;
 
   /**
    * Функция возвращает случайное число от 0 до maxNumber
@@ -16,9 +17,10 @@
   }
 
   window.utility = {
-    body: siteBody,
+    getBodySite: siteBody,
     uploadedPhoto: photoUploaded,
-    keyEsc: BTN_ESC_CODE,
+    KEY_ESC: BTN_ESC_CODE,
     getRandom: getRandomFromTo,
+    TIMEOUT: TIMEOUT,
   };
 })();

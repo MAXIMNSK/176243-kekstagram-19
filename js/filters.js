@@ -41,8 +41,9 @@
   function loadDefaultFilter() {
     activeFilter = defaultPhotoEffect.value;
     percentIntensivity = DEFAULT_INTENSIVITY;
+    window.resize.getDefaultSize();
     window.utility.uploadedPhoto.classList = '';
-    window.utility.uploadedPhoto.style.filter = 'none';
+    window.utility.uploadedPhoto.style.filter = '';
     intensivityScaleWrapper.classList.toggle('hidden');
   }
 
@@ -57,6 +58,8 @@
 
       activeFilter = evt.target.value;
       percentIntensivity = DEFAULT_INTENSIVITY;
+
+      window.utility.uploadedPhoto.style.filter = objFilters.activeFilter;
     }
 
     if (evt.target.matches('input[type="radio"]') === true && evt.target === defaultPhotoEffect) {
@@ -66,8 +69,6 @@
     if (evt.target.matches('input[type="radio"]') === true && evt.target !== defaultPhotoEffect && intensivityScaleWrapper.classList.contains('hidden') === true) {
       intensivityScaleWrapper.classList.toggle('hidden');
     }
-
-    onInputIntensivityInput(activeFilter);
   }
 
   /**
@@ -78,33 +79,14 @@
     percentIntensivity = Math.round(pinOnScale.offsetLeft / (totalWidthScale / 100));
     intensivityEffectInput.value = percentIntensivity;
 
-    onInputIntensivityInput(activeFilter);
-  }
-
-  /**
-   * Функция получает имя активного фильтра и проверяет по ветвлению, когда соответствие найдено, то для фотографии обновляем фильтр задавая новый стиль (данные берем из объекта с фильтрами)
-   * @param {string} currentFilter имя передаваемого активного фильтра
-   */
-  function onInputIntensivityInput(currentFilter) {
-    if (currentFilter === 'chrome') {
-      window.utility.uploadedPhoto.style.filter = objFilters.chrome();
-    } else if (currentFilter === 'sepia') {
-      window.utility.uploadedPhoto.style.filter = objFilters.sepia();
-    } else if (currentFilter === 'marvin') {
-      window.utility.uploadedPhoto.style.filter = objFilters.marvin();
-    } else if (currentFilter === 'phobos') {
-      window.utility.uploadedPhoto.style.filter = objFilters.phobos();
-    } else if (currentFilter === 'heat') {
-      window.utility.uploadedPhoto.style.filter = objFilters.heat();
-    } else {
-      window.utility.uploadedPhoto.style.filter = objFilters.none();
-    }
+    window.utility.uploadedPhoto.style.filter = objFilters.activeFilter;
   }
 
   photoEffectsList.addEventListener('click', onEffectClick);
   pinOnScale.addEventListener('mouseup', onPinMouseUp);
 
   window.filters = {
-    default: loadDefaultFilter,
+    getDefaultSettings: loadDefaultFilter,
+    activeFilter: activeFilter,
   };
 })();

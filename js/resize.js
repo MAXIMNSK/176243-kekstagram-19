@@ -23,7 +23,7 @@
    * Функция-обработчик вызываемая при клике на элемент изменяющий и отображающий размер загруженной фотографии. Если была нажата кнопка + то фото увеличивается на 25%, если на - то уменьшается на 25 (но не меньше 25 и не больше 100).
    * @param {*} evt событие передаваемое в функцию по умолчанию JSом
    */
-  function onBtnResize(evt) {
+  function onBtnResizeClick(evt) {
     var temp = +resizePhotoInputArea.value.slice(0, resizePhotoInputArea.value.length - 1);
 
     if (evt.target === resizePhotoToSmall) {
@@ -44,9 +44,9 @@
     window.utility.uploadedPhoto.style.transform = 'scale(' + (temp / 100) + ')';
   }
 
-  resizePhotoWrapper.addEventListener('click', onBtnResize);
+  resizePhotoWrapper.addEventListener('click', onBtnResizeClick);
 
   window.resize = {
-    default: loadDefaultSize,
+    getDefaultSize: loadDefaultSize,
   };
 })();

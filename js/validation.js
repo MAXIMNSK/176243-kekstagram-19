@@ -26,11 +26,11 @@
   function checkHashtags(element, index, array) {
     var incorrectSymbolsString = '!@$%^&*()_+"№;:?-=,.';
     var incorrectSymbolsArray = incorrectSymbolsString.split('');
-    var notFound = -1;
+    var NOT_FOUND = -1;
 
     // проверка не не корректные символы
     for (var i = 0; i < incorrectSymbolsArray.length; i++) {
-      if (element.indexOf(incorrectSymbolsArray[i]) !== notFound) {
+      if (element.indexOf(incorrectSymbolsArray[i]) !== NOT_FOUND) {
         hashtagsInputArea.setCustomValidity(incorrectSymbolsArray[i] + ' некорректный символ в хештеге');
         return false;
       } else {

@@ -10,65 +10,82 @@
   var uploaderPhoto = document.querySelector('#upload-file');
 
   /**
-   * Функция вызывается для скрытия уведомления о возникшей ошибке при загрузке данных на сервер
+   * Функция скрывает уведомление о возникшей ошибке при загрузке данных на сервер
    */
   function errorUpload() {
-    var errorBlock = document.querySelector('.error');
-    var errorMessage = document.querySelector('.error__inner');
-    var errorBtn = document.querySelector('.error__button');
+    window.modal.errorBtn = document.querySelector('.error__button');
+    window.modal.errorBlock = document.querySelector('.error');
+    window.modal.errorMessage = document.querySelector('.error__inner');
 
-    errorBtn.addEventListener('click', function () {
-      errorBlock.remove();
-    });
+    window.modal.errorBtn.addEventListener('click', onErrorCloseClick);
+    document.addEventListener('click', nearToErrorClick);
+    document.addEventListener('keydown', onDocumentEscPress);
+  }
 
-    document.addEventListener('click', function (evt) {
-      if (evt.target !== errorMessage && document.querySelectorAll('.error').length > 0) {
-        errorBlock.remove();
-      }
-    });
+  /**
+   * При вызове функция убирает уведомление об ошибке
+   */
+  function onErrorCloseClick() {
+    window.modal.errorBlock.remove();
+  }
 
-    document.addEventListener('keydown', function (evt) {
-      if (evt.keyCode === window.utility.keyEsc && document.querySelectorAll('.error').length > 0) {
-        errorBlock.remove();
-      }
-    });
+  /**
+   * При вызове функция убирает уведомление об ошибке и удаляет слушателя событий с элемента-инициатора
+   * @param {*} evt событие передаваемое в функцию
+   */
+  function nearToErrorClick(evt) {
+    if (evt.target !== window.modal.errorMessage) {
+      window.modal.errorBlock.remove();
+    }
+  }
+
+  /**
+   * При вызове функция убирает уведомление об ошибке и удаляет слушателя событий с элемента-инициатора
+   * @param {*} evt событие передаваемое в функцию
+   */
+  function onDocumentEscPress(evt) {
+    if (evt.keyCode === window.utility.KEY_ESC) {
+      window.modal.errorBlock.remove();
+    }
   }
 
   /**
    * Функция вызывается для скрытия уведомления об успешной загрузке данных на сервер
    */
   function successfulUpload() {
-    var successBlock = document.querySelector('.success');
-    var successMessage = document.querySelector('.success__inner');
-    var successBtn = document.querySelector('.success__button');
+    window.modal.successBlock = document.querySelector('.success');
+    window.modal.successMessage = document.querySelector('.success__inner');
+    window.modal.successBtn = document.querySelector('.success__button');
 
-    successBtn.addEventListener('click', function () {
-      successBlock.remove();
-    });
-
-    document.addEventListener('click', function (evt) {
-      if (evt.target !== successMessage && document.querySelectorAll('.success').length > 0) {
-        successBlock.remove();
-      }
-    });
-
-    document.addEventListener('keydown', function (evt) {
-      if (evt.keyCode === window.utility.keyEsc && document.querySelectorAll('.success').length > 0) {
-        successBlock.remove();
-      }
-    });
+    window.modal.successBtn.addEventListener('click', onSuccessCloseClick);
+    document.addEventListener('click', nearToSuccessClick);
+    document.addEventListener('keydown', onDocumentEscKeydown);
   }
 
   /**
-   * Функция добавляет/удаляет класс modal-open для тега body и показывает редактор фотографии при изменении состояния photo uploader
+   * При вызове функция убирает уведомление успешной загрузке
    */
-  function onUploaderFileChange() {
-    if (window.utility.body.classList.contains('modal-open') === false) {
-      window.utility.body.classList.toggle('modal-open');
-    }
+  function onSuccessCloseClick() {
+    window.modal.successBlock.remove();
+  }
 
-    if (blockPhotoEditor.classList.contains('hidden') === true) {
-      blockPhotoEditor.classList.toggle('hidden');
+  /**
+   * При вызове функция убирает уведомление о успешной загрузке и удаляет слушателя событий с элемента-инициатора
+   * @param {*} evt событие передаваемое в функцию
+   */
+  function nearToSuccessClick(evt) {
+    if (evt.target !== window.modal.successMessage) {
+      window.modal.successBlock.remove();
+    }
+  }
+
+  /**
+   * При вызове функция убирает уведомление о успешной загрузке и удаляет слушателя событий с элемента-инициатора
+   * @param {*} evt событие передаваемое в функцию
+   */
+  function onDocumentEscKeydown(evt) {
+    if (evt.keyCode === window.utility.KEY_ESC) {
+      window.modal.successBlock.remove();
     }
   }
 
@@ -79,12 +96,13 @@
   function onCloseClick(evt) {
     if (evt.target === closerBigPicture) {
       blockBigPicture.classList.toggle('hidden');
-      window.utility.body.classList.toggle('modal-open');
+      window.utility.getBodySite.classList.toggle('modal-open');
     }
 
     if (evt.target === closerPhotoEditor) {
       blockPhotoEditor.classList.toggle('hidden');
-      window.utility.body.classList.toggle('modal-open');
+      window.filters.getDefaultSettings();
+      window.utility.getBodySite.classList.toggle('modal-open');
     }
   }
 
@@ -95,9 +113,9 @@
   function onPressEscKeydown(evt) {
     var successToClose;
 
-    if (evt.keyCode === window.utility.keyEsc && blockBigPicture.classList.contains('hidden') === false) {
+    if (evt.keyCode === window.utility.KEY_ESC && blockBigPicture.classList.contains('hidden') === false) {
       blockBigPicture.classList.toggle('hidden');
-      window.utility.body.classList.toggle('modal-open');
+      window.utility.getBodySite.classList.toggle('modal-open');
     }
 
     if (document.activeElement === inputHashtag || document.activeElement === inputComments) {
@@ -106,24 +124,29 @@
       successToClose = true;
     }
 
-    if (evt.keyCode === window.utility.keyEsc && blockPhotoEditor.classList.contains('hidden') === false && successToClose === true) {
+    if (evt.keyCode === window.utility.KEY_ESC && blockPhotoEditor.classList.contains('hidden') === false && successToClose === true) {
       blockPhotoEditor.classList.toggle('hidden');
-      window.utility.body.classList.toggle('modal-open');
+      window.filters.getDefaultSettings();
+      window.utility.getBodySite.classList.toggle('modal-open');
     }
   }
 
-  closerBigPicture.addEventListener('click', function (evt) {
-    onCloseClick(evt);
-  });
+  /**
+   * Функция добавляет/удаляет класс modal-open для тега body и показывает редактор фотографии при изменении состояния photo uploader
+   */
+  function onUploaderFileChange() {
+    if (window.utility.getBodySite.classList.contains('modal-open') === false) {
+      window.utility.getBodySite.classList.toggle('modal-open');
+    }
 
-  closerPhotoEditor.addEventListener('click', function (evt) {
-    onCloseClick(evt);
-  });
+    if (blockPhotoEditor.classList.contains('hidden') === true) {
+      blockPhotoEditor.classList.toggle('hidden');
+    }
+  }
 
-  document.addEventListener('keydown', function (evt) {
-    onPressEscKeydown(evt);
-  });
-
+  closerBigPicture.addEventListener('click', onCloseClick);
+  closerPhotoEditor.addEventListener('click', onCloseClick);
+  document.addEventListener('keydown', onPressEscKeydown);
   uploaderPhoto.addEventListener('change', onUploaderFileChange);
 
   window.modal = {

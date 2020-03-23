@@ -8,7 +8,7 @@
    * Функция "устранения дребезга" / dobounce func. Интервал срабатывает только спустя 0.5 секунды "молчания"
    * @param {*} callBack функция которой задаётся интервал
    */
-  function debounceFunc(callBack) {
+  function excludeDebounce(callBack) {
     if (lastTimeout) {
       window.clearTimeout(lastTimeout);
     }
@@ -17,6 +17,6 @@
   }
 
   window.debounce = {
-    func: debounceFunc,
+    excludeDebounce: excludeDebounce,
   };
 })();

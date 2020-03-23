@@ -29,15 +29,15 @@
    * Прочие параметры которые мы сбрасываем на значения по умолчанию
    */
   function defaultParameters() {
-    window.utility.body.classList.toggle('modal-open');
+    window.utility.getBodySite.classList.toggle('modal-open');
     photoEditorBlock.classList.toggle('hidden');
     form.reset();
-    window.filters.default();
-    window.resize.default();
+    window.filters.getDefaultSettings();
+    window.resize.getDefaultSize();
   }
 
   form.addEventListener('submit', function (evt) {
     evt.preventDefault();
-    window.network.upload(new FormData(form), responseOk, responseError);
+    window.networkUpload.uploadToServer(new FormData(form), responseOk, responseError);
   });
 })();
