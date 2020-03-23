@@ -25,6 +25,7 @@
 
   function responseOk(responseServer) {
     window.collectionPhoto.render(responseServer);
+    window.collectionPhoto.showFilter();
   }
 
   function responseError(code) {
