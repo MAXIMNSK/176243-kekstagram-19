@@ -29,7 +29,7 @@
    * @param {[{}]} serverResponse ответ сервера в виде массива объектов
    */
   function renderCollection(serverResponse) {
-    // присваиваем переменной arr массив ответа с сервера
+    // присваиваем переменной arr массив первый ответа с сервера
     window.collectionPhoto.arr = serverResponse;
 
     removeOldCollection();
